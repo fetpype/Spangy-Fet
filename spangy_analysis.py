@@ -19,6 +19,8 @@ def process_single_file(filename, surface_path, df):
         start_time = time.time()
         print("Starting processing of {}".format(filename))
 
+        filename = filename.replace('smooth_5_', '') # Remove the prefix from the previous smoothing
+
         hemisphere = 'left' if filename.endswith('left.surf.gii') else 'right'
         participant_session = filename.split('_')[0] + '_' + filename.split('_')[1] + f'_{hemisphere}'
         base_participant_session = filename.split('_')[0] + '_' + filename.split('_')[1]
@@ -37,15 +39,9 @@ def process_single_file(filename, surface_path, df):
         if not os.path.exists(mesh_file):
             print("Error: Mesh file not found: {}".format(mesh_file))
             return None
-            
+
+        # load mesh file    
         mesh = sio.load_mesh(mesh_file)
-        mesh_smooth_5 = laplacian_mesh_smoothing(mesh, nb_iter=5, dt=0.1)
-        mesh = mesh_smooth_5
-        
-        # Use path from directories module
-        ensure_dir_exists(output_dirs['mesh_save_path'])
-        new_mesh_path = os.path.join(output_dirs['mesh_save_path'], 'smooth_5_{}'.format(filename))
-        sio.write_mesh(mesh, new_mesh_path)
 
         # Define N
         N = 5000
@@ -54,23 +50,7 @@ def process_single_file(filename, surface_path, df):
         print("compute the eigen vectors and eigen values")
         eigVal, eigVects, lap_b = spgy.eigenpairs(mesh, N)
 
-        # CURVATURE
-        print("compute the mean curvature")
-        PrincipalCurvatures, PrincipalDir1, PrincipalDir2 = \
-            scurv.curvatures_and_derivatives(mesh)
-        tex_PrincipalCurvatures = stex.TextureND(PrincipalCurvatures)
-        
-        # Use path from directories module
-        ensure_dir_exists(output_dirs['principal_tex_dir'])
-        sio.write_texture(tex_PrincipalCurvatures, output_dirs['principal_tex_path'])
-        
-        mean_curv = 0.5 * (PrincipalCurvatures[0, :] + PrincipalCurvatures[1, :])
-        tex_mean_curv = stex.TextureND(mean_curv)
-        tex_mean_curv.z_score_filtering(z_thresh=3)
-        
-        # Use path from directories module
-        ensure_dir_exists(output_dirs['mean_tex_dir'])
-        sio.write_texture(tex_mean_curv, output_dirs['mean_tex_path'])
+        tex_mean_curv = sio.load_texture(output_dirs['mean_tex_path'])
         filt_mean_curv = tex_mean_curv.darray.squeeze()
         total_mean_curv = sum(filt_mean_curv)
         # gyral_mask = np.where(filt_mean_curv > 0, 0, filt_mean_curv) # To mask gyri and only focus on sulci

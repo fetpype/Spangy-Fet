@@ -13,7 +13,7 @@ def main():
         input_dirs = input_directories()
         output_dirs = output_directories()
         
-        surface_path = input_dirs['surface_path']
+        surface_path = output_dirs['mesh_save_path']
         mesh_info_path = input_dirs['mesh_info_path']
         
         # Ensure all output directories exist
