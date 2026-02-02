@@ -6,11 +6,14 @@ from utils import ensure_dir_exists
 from slam.differential_geometry import laplacian_mesh_smoothing
 import os
 
-# Path to mesh folder
-surface_path = input_directories['surface_path']
+# Initialize paths
+input_dirs = input_directories()
 output_dirs = output_directories()
 
-for filename in surface_path:
+# Path to mesh folder
+surface_path = input_dirs['surface_path']
+
+for filename in os.listdir(surface_path):
     mesh_file = os.path.join(surface_path, filename)
 
     mesh = sio.load_mesh(mesh_file)
