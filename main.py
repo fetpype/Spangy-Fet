@@ -24,15 +24,15 @@ def main():
         ensure_dir_exists(output_dirs['output_folder'])
         
         print("Reading data from {}".format(mesh_info_path))
-        
+        print(mesh_info_path)
         # Read dataframe
-        df = pd.read_csv(mesh_info_path, sep='\t')
-        df['participant_session'] = df['subject_id'] + '_' + df['session_id']
+        df = pd.read_csv(mesh_info_path, sep='\t' if mesh_info_path.endswith('.tsv') else ',')
+        df['participant_session'] = "sub-" + df['participant_id'] + '_' + "ses-" + df['session'].apply(lambda x: f"{int(x):02d}")
         
         print("Scanning directory: {}".format(surface_path))
         
         # Get list of files
-        all_files = [f for f in os.listdir(surface_path) if f.endswith('left.surf.gii') or f.endswith('right.surf.gii')]
+        all_files = [f for f in os.listdir(surface_path) if f.endswith('R_white.surf.gii') or f.endswith('L_white.surf.gii')]
         print("Found {} files to process".format(len(all_files)))
         
         # Process directly if not in SLURM environment
