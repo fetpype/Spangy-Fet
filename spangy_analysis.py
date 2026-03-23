@@ -18,10 +18,13 @@ def process_single_file(filename, surface_path, df):
     try:
         start_time = time.time()
         print("Starting processing of {}".format(filename))
-
+        mesh_file = os.path.join(surface_path, filename)
+        if not os.path.exists(mesh_file):
+            print("Error: Mesh file not found: {}".format(mesh_file))
+            return None
         filename = filename.replace('smooth_5_', '') # Remove the prefix from the previous smoothing
-
-        hemisphere = 'left' if filename.endswith('left.surf.gii') else 'right'
+        
+        hemisphere = 'left' if filename.endswith('hemi-L_white.surf.gii') else 'right'
         participant_session = filename.split('_')[0] + '_' + filename.split('_')[1] + f'_{hemisphere}'
         base_participant_session = filename.split('_')[0] + '_' + filename.split('_')[1]
         
@@ -30,15 +33,12 @@ def process_single_file(filename, surface_path, df):
         
         # Get corresponding gestational age
         try:
-            gestational_age = df[df['participant_session'] == base_participant_session]['scan_age'].values[0]
+            gestational_age = df[df['participant_session'] == base_participant_session]['ga'].values[0]
         except:
             print(f"Warning: No matching gestational age found for {base_participant_session}")
             return None
 
-        mesh_file = os.path.join(surface_path, filename)
-        if not os.path.exists(mesh_file):
-            print("Error: Mesh file not found: {}".format(mesh_file))
-            return None
+  
 
         # load mesh file    
         mesh = sio.load_mesh(mesh_file)

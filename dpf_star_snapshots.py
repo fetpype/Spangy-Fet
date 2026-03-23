@@ -10,6 +10,8 @@ output_dirs = output_directories()
 dir_meshes = output_dirs['mesh_save_path']  # Smooth fetal SURFACE PATH (with "smooth_5_" prefix)
 dir_dpf = output_dirs['dpf_tex_dir']  # DPF texture directory (with "dpf_" prefix)
 dir_dpf_snapshots = output_dirs['dpf_snapshots_dir']  # Snapshot save directory
+if not os.path.exists(dir_dpf_snapshots):
+    os.makedirs(dir_dpf_snapshots)
 
 if __name__ == "__main__":
     # Define camera positions for visualization
@@ -40,7 +42,7 @@ if __name__ == "__main__":
             base_name_mesh = mesh_filename
         
         # Iterate through DPF texture files to find matching one
-        for dpf_filename in os.listdir(dir_dpf):
+        for dpf_filename in sorted(os.listdir(dir_dpf)):
             # Remove "dpf_" prefix from DPF texture filename to get base name
             if dpf_filename.startswith("dpf_"):
                 base_name_dpf = dpf_filename.replace("dpf_", "")

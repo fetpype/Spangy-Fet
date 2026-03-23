@@ -8,9 +8,9 @@ from utils import plot_mesh_with_legend, mesh_orientation, read_gii_file
 # Set all paths and parameters here for easy management
 
 # Input/Output directories
-MESH_DIRECTORY = "/home/INT/dienye.h/python_files/rough/mesh/dhcp_mesh"
-TEXTURE_DIRECTORY = '/home/INT/dienye.h/python_files/rough/spangy_dom_band_textures/dhcp_textures'
-OUTPUT_DIRECTORY = "/home/INT/dienye.h/python_files/rough/spangy_dom_band_textures/dhcp_snapshots"
+MESH_DIRECTORY = "/media/tsanchez/tsanchez_data/data/normative_spangy/mesh"
+TEXTURE_DIRECTORY = '/media/tsanchez/tsanchez_data/data/normative_spangy/spangy/textures'
+OUTPUT_DIRECTORY = "/media/tsanchez/tsanchez_data/data/normative_spangy/spangy/chuv_snapshots"
 
 # Band definitions
 GYRI_BANDS = [4, 5, 6]
@@ -42,55 +42,54 @@ if __name__ == "__main__":
     # Collect vertex counts from all meshes
     processed_count = 0
     
-    for filename in os.listdir(MESH_DIRECTORY):
+    for filename in sorted(os.listdir(MESH_DIRECTORY)):
+        print(f"Processing mesh: {filename}")
         original_filename = filename
-        
-        for file in os.listdir(TEXTURE_DIRECTORY):
-            # Remove the prefix
-            clean_filename = file.replace(TEXTURE_PREFIX, "").replace(".gii", "")
-            
-            # Clean mesh filename
-            filename_cleaned = filename.replace(MESH_PREFIX, "").replace(
+        filename_cleaned = filename.replace(MESH_PREFIX, "").replace(
                 MESH_SUFFIX_TO_REMOVE, ""
             ).replace(".surf.gii", "") if filename.startswith(MESH_PREFIX) else filename
-
-            print("mesh", filename_cleaned)
-            print('tex', clean_filename)
-
-            if filename_cleaned == clean_filename:
-                participant_session = clean_filename.split('_')[0] + '_' + clean_filename.split('_')[1]
+        sub_ses = "_".join(filename_cleaned.split('_')[:2])
+        hemi = "left" if filename_cleaned.split('_')[-2] == "hemi-L" else "right"
+        texture = [file for file in os.listdir(TEXTURE_DIRECTORY) if sub_ses in file and hemi in file]
+        if len(texture) == 0:
+            print(f"No texture found for {filename_cleaned}")
+            continue
+        elif len(texture) > 1:
+            raise ValueError(f"Multiple textures found for {filename_cleaned}")
+        else:
+            texture = texture[0]
                 
-                # Load mesh file
-                mesh_file = os.path.join(MESH_DIRECTORY, original_filename)
-                mesh = sio.load_mesh(mesh_file)
-                hem_det = clean_filename.split('_')[-1].split('.')[0]
-                
-                # Orient mesh
-                mesh, camera_medial, camera_lateral = mesh_orientation(mesh, hem_det)
-                vertices = mesh.vertices
-                faces = mesh.faces
+            # Load mesh file
+            mesh_file = os.path.join(MESH_DIRECTORY, original_filename)
+            mesh = sio.load_mesh(mesh_file)
+            hem_det = hemi
+            
+            # Orient mesh
+            mesh, camera_medial, camera_lateral = mesh_orientation(mesh, hem_det)
+            vertices = mesh.vertices
+            faces = mesh.faces
 
-                # Load generated texture
-                tex_file = os.path.join(TEXTURE_DIRECTORY, file)
-                loc_dom_band_texture = read_gii_file(tex_file)
+            # Load generated texture
+            tex_file = os.path.join(TEXTURE_DIRECTORY, texture)
+            loc_dom_band_texture = read_gii_file(tex_file)
 
-                # Create visualization with dual view
-                fig = plot_mesh_with_legend(
-                    vertices=mesh.vertices,
-                    faces=mesh.faces,
-                    scalars=loc_dom_band_texture,
-                    selected_bands=SELECTED_BANDS,
-                    camera=camera_lateral, 
-                    title=PLOT_TITLE,
-                    show_dual_view=SHOW_DUAL_VIEW
-                )
-                
-                # Save output
-                output_path = os.path.join(OUTPUT_DIRECTORY, f"{participant_session}_{hem_det}.png")
-                fig.write_image(output_path)
-                
-                processed_count += 1
-                print(f"Processed: {participant_session}_{hem_det}")
+            # Create visualization with dual view
+            fig = plot_mesh_with_legend(
+                vertices=mesh.vertices,
+                faces=mesh.faces,
+                scalars=loc_dom_band_texture,
+                selected_bands=SELECTED_BANDS,
+                camera=camera_lateral, 
+                title=PLOT_TITLE,
+                show_dual_view=SHOW_DUAL_VIEW
+            )
+            
+            # Save output
+            output_path = os.path.join(OUTPUT_DIRECTORY, f"{sub_ses}_{hem_det}.png")
+            fig.write_image(output_path)
+            
+            processed_count += 1
+            print(f"Processed: {sub_ses}_{hem_det}")
     
     print("-" * 60)
     print(f"Total images processed: {processed_count}")

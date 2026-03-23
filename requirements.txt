@@ -1,0 +1,8 @@
+brain-slam==0.1.0
+numpy
+matplotlib
+pandas
+seaborn
+plotly
+kaleido
+dash
