@@ -10,6 +10,8 @@ conda create --name devfet python=3.12
 pip install -r requirements.txt
 ```
 
+The normative modelling step (Step 7) is an R script and therefore also requires an R installation. The R packages it needs and how to set them up are given at the top of the script itself.
+
 ### 1. directories.py
 **Purpose**: Central configuration for all directory paths  
 **Functions**:
@@ -105,6 +107,14 @@ mesh_path = output_dirs['mesh_save_path']
 spangy_tex = output_dirs['spangy_tex_path']
 ```
 
+### 8. harmonization_log_transform.py
+**Purpose**: Harmonization of the SPANGY features across acquisition sites  
+**Usage**: Inputs, outputs, parameters and run instructions are documented within the script — see `harmonization_log_transform.py`.
+
+### 9. harmonized_site modelling_cross_val _subject_dependent.r
+**Purpose**: Normative modelling of the harmonized SPANGY features  
+**Usage**: Inputs, outputs, required R packages, parameters and run instructions are documented within the script — see `harmonized_site modelling_cross_val _subject_dependent.r`.
+
 ## Complete Workflow
 
 ```
@@ -162,6 +172,20 @@ spangy_tex = output_dirs['spangy_tex_path']
                                        │  • Generates images   │
                                        │  • Saves snapshots    │
                                        └───────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 6: harmonization_log_transform.py                      │
+│  • Harmonization across sites                                │
+│  • See instructions within the script                        │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 7: harmonized_site modelling_cross_val                 │
+│          _subject_dependent.r                                │
+│  • Normative modelling (R)                                   │
+│  • See instructions within the script                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Directory Structure Created
@@ -186,6 +210,8 @@ spangy_tex = output_dirs['spangy_tex_path']
     └── chunk_*_results.csv        # Chunk results (SLURM mode)
 ```
 
+The input and output locations of the harmonization and normative modelling steps (Steps 6 and 7) are set within those scripts.
+
 ## Quick Start
 
 1. **Ensure all files are in the same directory:**
@@ -198,7 +224,9 @@ spangy_tex = output_dirs['spangy_tex_path']
    ├── main.py
    ├── spangy_analysis.py
    ├── spangy_snapshot_updated.py
-   └── utils.py
+   ├── utils.py
+   ├── harmonization_log_transform.py
+   └── harmonized_site modelling_cross_val _subject_dependent.r
    ```
 
 2. **Run the processing pipeline in order:**
@@ -221,12 +249,20 @@ spangy_tex = output_dirs['spangy_tex_path']
    
    # Step 5: Generate SPANGY snapshots
    python spangy_snapshot_updated.py
+
+   # Step 6: Harmonization (see instructions within the script)
+   python harmonization_log_transform.py
+
+   # Step 7: Normative modelling (see instructions within the script)
+   # The file name contains spaces, so keep the quotes
+   Rscript "harmonized_site modelling_cross_val _subject_dependent.r"
    ```
 
 3. **To change a directory path:**
    - Open `directories.py`
    - Update the path in the appropriate function
    - Save - all scripts automatically use the new path!
+   - For Steps 6 and 7, paths are set within `harmonization_log_transform.py` and `harmonized_site modelling_cross_val _subject_dependent.r`
 
 ## Available Paths
 
@@ -259,6 +295,10 @@ spangy_tex = output_dirs['spangy_tex_path']
 
 ### Phase 3: Visualization (Post-SPANGY)
 5. **spangy_snapshot_updated.py** - Creates visual verification of SPANGY results
+
+### Phase 4: Harmonization & Normative Modelling (Post-SPANGY)
+6. **harmonization_log_transform.py** - Harmonization across sites; see the instructions within the script
+7. **harmonized_site modelling_cross_val _subject_dependent.r** - Normative modelling; see the instructions within the script
 
 ## Example: Adding a New Output Directory
 
